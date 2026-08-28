@@ -1,0 +1,30 @@
+export const AGENT_EVENT_TYPE = {
+    THINKING_DELTA: 'thinking_delta',
+    THINKING: 'thinking',
+    TOOL_CALL_START: 'tool_call_start',
+    TOOL_CALL_DELTA: 'tool_call_delta',
+    TOOL_CALL: 'tool_call',
+    TOOL_RESULT: 'tool_result',
+    GUARDRAIL_REQUEST: 'guardrail_request',
+    SKILL_CALL: 'skill_call',
+    SKILL_RESULT: 'skill_result',
+    AGENT_CALL: 'agent_call',
+    AGENT_RESULT: 'agent_result',
+    MESSAGE_DELTA: 'message_delta',
+    MESSAGE: 'message',
+    MEMORY_READ: 'memory_read',
+    MEMORY_WRITE: 'memory_write',
+    PLAN: 'plan',
+    STEP_STARTED: 'step_started',
+    STEP_COMPLETED: 'step_completed',
+    STEP_FAILED: 'step_failed',
+    ERROR: 'error',
+    HANDOFF: 'handoff',
+    HUMAN_INPUT: 'human_input',
+    ITERATION: 'iteration',
+    STRUCTURED_OUTPUT_DELTA: 'structured_output_delta',
+    STRUCTURED_OUTPUT: 'structured_output',
+    DONE: 'done'
+} as const
+
+export type AgentEventType = (typeof AGENT_EVENT_TYPE)[keyof typeof AGENT_EVENT_TYPE]

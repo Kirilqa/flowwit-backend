@@ -1,0 +1,75 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Dependency directories
+node_modules/
+
+# Build output
+dist/
+build/
+out/
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Env files
+.env
+.env.*
+!.env.example
+
+# IDE / Editors
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Coverage
+coverage/
+
+# Optional npm cache
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Optional stylelint cache
+.stylelintcache
+
+# Parcel / Vite / Next / etc
+.cache/
+.next/
+.nuxt/
+.svelte-kit/
+
+# Temp files
+tmp/
+temp/
+
+# Lock files
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+
+# Misc
+*.local
+
+# Agent
+/docs/
+/data/

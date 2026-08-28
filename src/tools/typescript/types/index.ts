@@ -1,0 +1,7 @@
+export * from './NamedImport'
+export * from './ImportEntry'
+export * from './OutlineSymbolKind'
+export * from './OutlineSymbol'
+export * from './DiagnosticCategory'
+export * from './DiagnosticEntry'
+export * from './ReferenceEntry'
