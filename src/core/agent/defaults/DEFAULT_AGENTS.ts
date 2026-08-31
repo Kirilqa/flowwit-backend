@@ -1,4 +1,4 @@
-import { AppConfig } from '@config'
+import { ProviderInterface } from '@provider'
 import { AGENT_ROLE } from '../types/AgentRole'
 import { RawAgentConfig } from '../types/RawAgentConfig'
 
@@ -8,8 +8,8 @@ You are Flowwit's default starter agent — the first agent available right afte
 You have broad access to this system's own tools, skills and workflows. If the user asks you to create or manage other agents, skills, MCP server connections, scheduled tasks, or workflows, load the matching manager skill first (agent-manager, skill-manager, mcp-manager, scheduler-manager, workflow-manager) before acting on it — each one explains the exact tool contract you need, don't guess. Otherwise, just help with whatever the user asks.
 `.trim()
 
-export function createDefaultAgents(appConfig: AppConfig): Array<RawAgentConfig> {
-    const { provider, model } = resolveProviderAndModel(appConfig)
+export async function createDefaultAgents(providers: Array<ProviderInterface>): Promise<Array<RawAgentConfig>> {
+    const { provider, model } = await resolveProviderAndModel(providers)
 
     return [
         {
@@ -30,10 +30,15 @@ export function createDefaultAgents(appConfig: AppConfig): Array<RawAgentConfig>
     ]
 }
 
-function resolveProviderAndModel(appConfig: AppConfig): { provider: string; model: string } {
-    if (appConfig.openrouter.apiKey !== undefined) {
-        return { provider: 'openrouter', model: 'openai/gpt-5.6-luna' }
+async function resolveProviderAndModel(
+    providers: Array<ProviderInterface>
+): Promise<{ provider: string; model: string }> {
+    for (const provider of providers) {
+        const model = await provider.getDefaultModel()
+        if (model !== null) {
+            return { provider: provider.name, model }
+        }
     }
 
-    return { provider: 'openai', model: 'gpt-5.6-luna' }
+    throw new Error('No provider was able to resolve a default model for the starter agent')
 }

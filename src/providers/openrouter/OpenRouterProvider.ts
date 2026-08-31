@@ -25,6 +25,8 @@ import { openRouterModelsListResponseSchema, openRouterChatCompletionResponseSch
 
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1'
 const PROVIDER_NAME = 'openrouter'
+const REACHABILITY_TIMEOUT_MS = 10000
+const DEFAULT_MODEL = 'openai/gpt-5.6-luna'
 
 export class OpenRouterProvider extends BaseProvider {
     readonly name: string = PROVIDER_NAME
@@ -45,14 +47,20 @@ export class OpenRouterProvider extends BaseProvider {
 
     protected async initializeProvider(): Promise<void> {}
 
+    async getDefaultModel(): Promise<string | null> {
+        return DEFAULT_MODEL
+    }
+
     protected async fetchModels(): Promise<Array<ModelInfo>> {
-        const response = await this.request('/models', openRouterModelsListResponseSchema)
+        const response = await this.request('/models', openRouterModelsListResponseSchema, {
+            signal: AbortSignal.timeout(REACHABILITY_TIMEOUT_MS)
+        })
         return response.data.map(model => resolveModelInfo(model))
     }
 
     protected async checkAccess(): Promise<boolean> {
         try {
-            await this.request('/models', openRouterModelsListResponseSchema)
+            await this.requestRaw('/key', { signal: AbortSignal.timeout(REACHABILITY_TIMEOUT_MS) })
             return true
         } catch {
             return false

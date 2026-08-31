@@ -10,6 +10,7 @@ import {
     StreamChunk
 } from '@provider/types'
 import {
+    ProviderAuthError,
     ProviderGenerationError,
     ProviderModelNotFoundError,
     ProviderStreamGenerationError,
@@ -99,6 +100,11 @@ class ConcreteProvider extends BaseProvider {
     protected async checkAccess(): Promise<boolean> {
         return this.accessResult
     }
+
+    async getDefaultModel(): Promise<string | null> {
+        const models = await this.listModels()
+        return models[0]?.id ?? null
+    }
 }
 
 class PartialStreamThenHangProvider extends ConcreteProvider {
@@ -182,6 +188,20 @@ describe('BaseProvider', () => {
             await expect(provider.listModels()).rejects.toThrow()
 
             provider.initError = null
+            const models = await provider.listModels()
+            expect(models).toHaveLength(1)
+        })
+
+        it('throws ProviderAuthError when checkAccess resolves false', async () => {
+            provider.accessResult = false
+            await expect(provider.listModels()).rejects.toBeInstanceOf(ProviderAuthError)
+        })
+
+        it('allows retry after a failed access check once the key becomes valid', async () => {
+            provider.accessResult = false
+            await expect(provider.listModels()).rejects.toBeInstanceOf(ProviderAuthError)
+
+            provider.accessResult = true
             const models = await provider.listModels()
             expect(models).toHaveLength(1)
         })
@@ -403,12 +423,31 @@ describe('BaseProvider', () => {
         })
     })
 
+    describe('getDefaultModel()', () => {
+        it('returns the id of the first available model', async () => {
+            provider.models = [makeModel('first'), makeModel('second')]
+            expect(await provider.getDefaultModel()).toBe('first')
+        })
+
+        it('returns null when no models are available', async () => {
+            provider.models = []
+            expect(await provider.getDefaultModel()).toBeNull()
+        })
+    })
+
     describe('verifyAccess()', () => {
         it('returns true when checkAccess resolves true', async () => {
             expect(await provider.verifyAccess()).toBe(true)
         })
 
-        it('returns false when checkAccess resolves false', async () => {
+        it('rejects with ProviderAuthError when the key is invalid on first initialization', async () => {
+            provider.accessResult = false
+            await expect(provider.verifyAccess()).rejects.toBeInstanceOf(ProviderAuthError)
+        })
+
+        it('returns false when access is revoked after a successful initialization', async () => {
+            await provider.listModels()
+
             provider.accessResult = false
             expect(await provider.verifyAccess()).toBe(false)
         })

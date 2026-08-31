@@ -21,7 +21,7 @@ export abstract class BaseStartWorkFlowNode<
 
     get portsJsonSchema(): Record<string, unknown> {
         this._portsJsonSchema ??= {
-            $input: z.toJSONSchema(this.inputSchema)
+            $input: z.toJSONSchema(this.inputSchema, { io: 'input' })
         }
 
         return this._portsJsonSchema

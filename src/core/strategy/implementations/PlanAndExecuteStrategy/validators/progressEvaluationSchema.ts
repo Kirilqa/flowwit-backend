@@ -6,7 +6,7 @@ const completedStepWireSchema = z.object({
     result: z.string()
 })
 
-export const progressEvaluationWireSchema = z.object({
+const progressEvaluationWireSchema = z.object({
     completedSteps: z.array(completedStepWireSchema),
     status: z
         .enum([

@@ -1,5 +1,6 @@
 import { getErrorMessage } from '@core/utils'
 import {
+    ProviderAuthError,
     ProviderGenerationError,
     ProviderStreamGenerationError,
     ProviderTimeoutError,
@@ -34,6 +35,11 @@ export abstract class BaseProvider implements ProviderInterface {
         try {
             await this.initializeProvider()
 
+            const hasAccess = await this.checkAccess()
+            if (!hasAccess) {
+                throw new ProviderAuthError(`Provider "${this.name}" failed access verification`)
+            }
+
             const models = await this.fetchModels()
 
             const nextModelsCache = new Map<string, ModelInfo>()
@@ -62,6 +68,8 @@ export abstract class BaseProvider implements ProviderInterface {
             })
         }
     }
+
+    abstract getDefaultModel(): Promise<string | null>
 
     async listModels(): Promise<Array<ModelInfo>> {
         await this.ensureInitialized()

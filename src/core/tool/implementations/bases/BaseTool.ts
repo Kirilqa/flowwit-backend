@@ -10,7 +10,7 @@ export abstract class BaseTool<TSchema extends ZodObject<ZodRawShape>> implement
     private _parameters: Record<string, unknown> | null = null
 
     get parameters(): Record<string, unknown> {
-        this._parameters ??= z.toJSONSchema(this.schema) as Record<string, unknown>
+        this._parameters ??= z.toJSONSchema(this.schema, { io: 'input' }) as Record<string, unknown>
         return this._parameters
     }
 

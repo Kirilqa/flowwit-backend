@@ -1,5 +1,5 @@
 import { stripUndefined } from '@core/utils'
-import { AppConfig, OpenAIConfig, OpenRouterConfig } from './types'
+import { AppConfig, OpenAIConfig, OpenRouterConfig, OllamaConfig, LMStudioConfig } from './types'
 import { ConfigValidationError } from './errors'
 import { appConfigEnvSchema } from './validators'
 
@@ -28,9 +28,18 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
         title: data.OPENROUTER_TITLE
     }) as OpenRouterConfig
 
+    const ollama = stripUndefined({ baseUrl: data.OLLAMA_BASE_URL }) as OllamaConfig
+
+    const lmstudio = stripUndefined({
+        baseUrl: data.LMSTUDIO_BASE_URL,
+        apiKey: data.LMSTUDIO_API_KEY
+    }) as LMStudioConfig
+
     return {
         openai,
         openrouter,
+        ollama,
+        lmstudio,
         server: {
             port: data.SERVER_PORT,
             host: data.SERVER_HOST

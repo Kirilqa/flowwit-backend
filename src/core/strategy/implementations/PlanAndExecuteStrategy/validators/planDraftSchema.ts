@@ -11,7 +11,7 @@ const planStepDraftWireSchema: z.ZodType<PlanStepDraftWire> = z.object({
     steps: z.array(z.lazy(() => planStepDraftWireSchema)).optional()
 })
 
-export const planDraftWireSchema = z.object({
+const planDraftWireSchema = z.object({
     steps: z.array(planStepDraftWireSchema).min(1)
 })
 

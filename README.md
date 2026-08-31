@@ -16,7 +16,7 @@ npm install
 
 ## Setup
 
-Copy the example environment file and set at least one provider key:
+Copy the example environment file and configure at least one provider:
 
 ```bash
 cp .env.example .env
@@ -26,9 +26,13 @@ cp .env.example .env
 OPENAI_API_KEY=sk-...
 # or
 OPENROUTER_API_KEY=sk-or-...
+# or, for local models via Ollama, no key needed:
+OLLAMA_BASE_URL=http://localhost:11434
+# or, for local models via LM Studio, key only needed if you enabled it there:
+LMSTUDIO_BASE_URL=http://localhost:1234
 ```
 
-At least one of `OPENAI_API_KEY` / `OPENROUTER_API_KEY` is required — only the provider whose key is set gets registered. Everything else in `.env.example` (server port/host, storage paths, extra provider options, channel settings) is optional, with sensible defaults.
+At least one provider must be configured — OpenAI/OpenRouter need their API key set, Ollama/LM Studio just need their `*_BASE_URL` explicitly uncommented (both are only attempted at startup when their variable is present). LM Studio's API key is optional — set `LMSTUDIO_API_KEY` only if you've turned on "Require Authentication" in LM Studio's own server settings. Everything else in `.env.example` (server port/host, storage paths, extra provider options, channel settings) is optional, with sensible defaults.
 
 All persistent data (agent/MCP/channel configs, sessions, skills, memory, workflows, scheduled tasks) lives under `./data/` by default — back up or volume-mount that one folder to persist everything. On first run (empty `./data/`), the server creates a starter agent and installs five system skill guides on its own — nothing to set up by hand.
 
@@ -54,6 +58,8 @@ docker run --env-file .env -p 3000:3000 -v $(pwd)/data:/app/data flowwit-backend
 ```
 
 The `-v` mount is what makes data survive a container recreation (e.g. on the next `docker run` after an update) — without it, everything under `./data/` lives only in the container's writable layer and is lost the moment the container is removed.
+
+If you're using `OLLAMA_BASE_URL`/`LMSTUDIO_BASE_URL` and running the backend itself in Docker, `localhost` inside the container is the container, not your host machine — point it at `http://host.docker.internal:11434`/`http://host.docker.internal:1234` instead (Docker Desktop on Mac/Windows) or the host's real LAN IP (Linux).
 
 ## Usage
 

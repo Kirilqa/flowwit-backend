@@ -18,8 +18,11 @@ describe('loadConfig', () => {
         }
     })
 
-    it('throws ConfigValidationError when no provider API key is set', () => {
-        expect(() => loadConfig({})).toThrow(ConfigValidationError)
+    it('loads successfully with no provider configured at all (schema no longer enforces this)', () => {
+        const config = loadConfig({})
+        expect(config.openai.apiKey).toBeUndefined()
+        expect(config.openrouter.apiKey).toBeUndefined()
+        expect(config.ollama.baseUrl).toBeUndefined()
     })
 
     it('loads successfully with only OPENAI_API_KEY set', () => {
@@ -51,6 +54,80 @@ describe('loadConfig', () => {
         expect(config.openai.baseUrl).toBe('https://proxy.example.com/v1')
         expect(config.openai.organization).toBe('org-1')
         expect(config.openai.project).toBe('proj-1')
+    })
+
+    it('treats present-but-empty optional string env vars as unset rather than failing validation', () => {
+        const config = loadConfig({
+            ...BASE_ENV,
+            OPENAI_BASE_URL: '',
+            OPENAI_ORGANIZATION: '',
+            OPENAI_PROJECT: '',
+            OPENROUTER_API_KEY: '',
+            OPENROUTER_BASE_URL: '',
+            OPENROUTER_HTTP_REFERER: '',
+            OPENROUTER_TITLE: '',
+            USER_TIMEZONE: ''
+        })
+
+        expect('baseUrl' in config.openai).toBe(false)
+        expect('organization' in config.openai).toBe(false)
+        expect('project' in config.openai).toBe(false)
+        expect(config.openrouter).toEqual({})
+        expect('userTimezone' in config).toBe(false)
+    })
+
+    it('does not crash on a Docker-style .env with one real key and the other left blank', () => {
+        const config = loadConfig({ OPENAI_API_KEY: 'sk-real', OPENROUTER_API_KEY: '' })
+        expect(config.openai.apiKey).toBe('sk-real')
+        expect(config.openrouter).toEqual({})
+    })
+
+    it('loads successfully when both provider keys are present but empty, treating them as unset', () => {
+        const config = loadConfig({ OPENAI_API_KEY: '', OPENROUTER_API_KEY: '' })
+        expect(config.openai).toEqual({})
+        expect(config.openrouter).toEqual({})
+    })
+
+    it('omits ollama.baseUrl entirely when OLLAMA_BASE_URL is not set, rather than defaulting it', () => {
+        const config = loadConfig(BASE_ENV)
+        expect('baseUrl' in config.ollama).toBe(false)
+    })
+
+    it('reads OLLAMA_BASE_URL from env when explicitly set', () => {
+        const config = loadConfig({ ...BASE_ENV, OLLAMA_BASE_URL: 'http://192.168.1.50:11434' })
+        expect(config.ollama.baseUrl).toBe('http://192.168.1.50:11434')
+    })
+
+    it('treats a present-but-empty OLLAMA_BASE_URL as unset', () => {
+        const config = loadConfig({ ...BASE_ENV, OLLAMA_BASE_URL: '' })
+        expect('baseUrl' in config.ollama).toBe(false)
+    })
+
+    it('omits lmstudio fields entirely when not set, rather than defaulting them', () => {
+        const config = loadConfig(BASE_ENV)
+        expect('baseUrl' in config.lmstudio).toBe(false)
+        expect('apiKey' in config.lmstudio).toBe(false)
+    })
+
+    it('reads LMSTUDIO_BASE_URL and LMSTUDIO_API_KEY from env when explicitly set', () => {
+        const config = loadConfig({
+            ...BASE_ENV,
+            LMSTUDIO_BASE_URL: 'http://192.168.1.50:1234',
+            LMSTUDIO_API_KEY: 'sk-lm-test'
+        })
+        expect(config.lmstudio.baseUrl).toBe('http://192.168.1.50:1234')
+        expect(config.lmstudio.apiKey).toBe('sk-lm-test')
+    })
+
+    it('allows LMSTUDIO_BASE_URL to be set without LMSTUDIO_API_KEY, since the key is optional', () => {
+        const config = loadConfig({ ...BASE_ENV, LMSTUDIO_BASE_URL: 'http://localhost:1234' })
+        expect(config.lmstudio.baseUrl).toBe('http://localhost:1234')
+        expect('apiKey' in config.lmstudio).toBe(false)
+    })
+
+    it('treats present-but-empty LMSTUDIO_BASE_URL and LMSTUDIO_API_KEY as unset', () => {
+        const config = loadConfig({ ...BASE_ENV, LMSTUDIO_BASE_URL: '', LMSTUDIO_API_KEY: '' })
+        expect(config.lmstudio).toEqual({})
     })
 
     it('reads optional OpenRouter provider options from env', () => {

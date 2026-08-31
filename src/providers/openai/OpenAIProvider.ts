@@ -15,11 +15,13 @@ import {
     BaseProvider
 } from '@provider'
 import { mapSpecificationToOpenAI, mapResponseFromOpenAI, mapStreamChunkFromOpenAI, resolveModelInfo } from './utils'
-import { OpenAIChatCompletionStreamChunkResponse, OpenAIProviderOptions } from './types'
+import { OpenAIChatCompletionStreamChunkResponse, OpenAIModelsListResponse, OpenAIProviderOptions } from './types'
 import { openAIModelsListResponseSchema, openAIChatCompletionResponseSchema } from './validators'
 
 const OPENAI_API_URL = 'https://api.openai.com/v1'
 const PROVIDER_NAME = 'openai'
+const REACHABILITY_TIMEOUT_MS = 10000
+const DEFAULT_MODEL = 'gpt-5.6-luna'
 
 export class OpenAIProvider extends BaseProvider {
     readonly name: string = PROVIDER_NAME
@@ -40,18 +42,28 @@ export class OpenAIProvider extends BaseProvider {
 
     protected async initializeProvider(): Promise<void> {}
 
+    async getDefaultModel(): Promise<string | null> {
+        return DEFAULT_MODEL
+    }
+
     protected async fetchModels(): Promise<Array<ModelInfo>> {
-        const response = await this.request('/models', openAIModelsListResponseSchema)
+        const response = await this.fetchModelsList()
         return response.data.map(model => resolveModelInfo(model.id, model.owned_by))
     }
 
     protected async checkAccess(): Promise<boolean> {
         try {
-            await this.request('/models', openAIModelsListResponseSchema)
+            await this.fetchModelsList()
             return true
         } catch {
             return false
         }
+    }
+
+    private async fetchModelsList(): Promise<OpenAIModelsListResponse> {
+        return this.request('/models', openAIModelsListResponseSchema, {
+            signal: AbortSignal.timeout(REACHABILITY_TIMEOUT_MS)
+        })
     }
 
     protected async executeGenerate(

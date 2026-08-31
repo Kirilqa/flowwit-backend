@@ -196,6 +196,10 @@ export class TestProvider implements ProviderInterface {
 
     async initialize(): Promise<void> {}
 
+    async getDefaultModel(): Promise<string | null> {
+        return TEST_MODEL
+    }
+
     async listModels(): Promise<Array<ModelInfo>> {
         return [testModelInfo()]
     }

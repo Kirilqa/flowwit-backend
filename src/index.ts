@@ -105,6 +105,8 @@ import {
 } from '@workflow'
 import { OpenAIProvider, OpenAIProviderOptions } from './providers/openai'
 import { OpenRouterProvider, OpenRouterProviderOptions } from './providers/openrouter'
+import { OllamaProvider } from './providers/ollama'
+import { LMStudioProvider, LMStudioProviderOptions } from './providers/lmstudio'
 import { RUN_MODE } from './types'
 import { parseRunMode } from './utils'
 import { JsonWorkFlowRunRepository, WorkFlowRunner, WorkFlowUpdater } from '@workflow'
@@ -123,8 +125,6 @@ const logger = PinoLogger.create()
 logger.info('Starting', { cwd: process.cwd() })
 ;(async () => {
     const appConfig = loadConfig()
-
-    const defaultAgents = createDefaultAgents(appConfig)
 
     const skillSafetyInspector = new NoopSkillSafetyInspector()
     const skillRepository = new SafetyCheckedSkillRepository(
@@ -183,6 +183,21 @@ logger.info('Starting', { cwd: process.cwd() })
         providerCandidates.push(openRouterProvider)
     }
 
+    if (appConfig.ollama.baseUrl !== undefined) {
+        providerCandidates.push(new OllamaProvider({ baseUrl: appConfig.ollama.baseUrl }))
+    }
+
+    if (appConfig.lmstudio.baseUrl !== undefined) {
+        providerCandidates.push(
+            new LMStudioProvider(
+                stripUndefined({
+                    baseUrl: appConfig.lmstudio.baseUrl,
+                    apiKey: appConfig.lmstudio.apiKey
+                }) as LMStudioProviderOptions
+            )
+        )
+    }
+
     const providerInitResults = await Promise.allSettled(providerCandidates.map(provider => provider.initialize()))
 
     providerCandidates.forEach((provider, index) => {
@@ -199,6 +214,8 @@ logger.info('Starting', { cwd: process.cwd() })
     }
 
     logger.info('Providers initialized', { count: providerRegistry.list().length })
+
+    const defaultAgents = await createDefaultAgents(providerRegistry.list())
 
     const toolCallCompressor = new ToolCallCompressor()
     const contextSummarizer = new SessionSummarizer()

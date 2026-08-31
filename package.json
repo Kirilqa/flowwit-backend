@@ -1,6 +1,6 @@
 {
     "name": "flowwit-backend",
-    "version": "0.8.1",
+    "version": "0.9.0",
     "description": "Multi-agent LLM platform with a visual workflow engine — chat with agents directly or build deterministic node-graph pipelines they execute step by step.",
     "author": "Kirilqa",
     "main": "dist/index.js",
@@ -26,6 +26,9 @@
         "workflow-engine",
         "openai",
         "openrouter",
+        "ollama",
+        "lmstudio",
+        "local-llm",
         "mcp",
         "telegram-bot"
     ],

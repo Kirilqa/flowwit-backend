@@ -32,13 +32,7 @@ import {
     StepExecutionOutcome
 } from './types'
 import { flattenLeafSteps, hydratePlanDraft, stepContainsId } from './utils'
-import {
-    planDraftSchema,
-    planDraftWireSchema,
-    preparationOutcomeSchema,
-    progressEvaluationSchema,
-    progressEvaluationWireSchema
-} from './validators'
+import { planDraftSchema, preparationOutcomeSchema, progressEvaluationSchema } from './validators'
 
 const DEFAULT_CONFIG: PlanAndExecuteStrategyConfig = {
     maxStructuredOutputAttempts: 3,
@@ -48,13 +42,13 @@ const DEFAULT_CONFIG: PlanAndExecuteStrategyConfig = {
 const PLAN_RESPONSE_FORMAT: ResponseFormat = {
     type: RESPONSE_FORMAT_TYPE.JSON_SCHEMA,
     name: 'plan',
-    jsonSchema: z.toJSONSchema(planDraftWireSchema)
+    jsonSchema: z.toJSONSchema(planDraftSchema, { io: 'input' })
 }
 
 const PROGRESS_EVALUATION_RESPONSE_FORMAT: ResponseFormat = {
     type: RESPONSE_FORMAT_TYPE.JSON_SCHEMA,
     name: 'progress_evaluation',
-    jsonSchema: z.toJSONSchema(progressEvaluationWireSchema)
+    jsonSchema: z.toJSONSchema(progressEvaluationSchema, { io: 'input' })
 }
 
 const PREPARATION_OUTCOME_RESPONSE_FORMAT: ResponseFormat = {

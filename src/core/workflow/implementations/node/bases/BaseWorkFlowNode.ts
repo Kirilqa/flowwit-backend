@@ -20,7 +20,7 @@ export abstract class BaseWorkFlowNode<
     private _portsJsonSchema: Record<string, unknown> | null = null
 
     get portsJsonSchema(): Record<string, unknown> {
-        this._portsJsonSchema ??= z.toJSONSchema(this.ports) as Record<string, unknown>
+        this._portsJsonSchema ??= z.toJSONSchema(this.ports, { io: 'input' }) as Record<string, unknown>
         return this._portsJsonSchema
     }
 

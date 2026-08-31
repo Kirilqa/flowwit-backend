@@ -16,17 +16,17 @@ export abstract class BaseNode<
     private _stateJsonSchema: Record<string, unknown> | null = null
 
     get outputsJsonSchema(): Record<string, unknown> {
-        this._outputsJsonSchema ??= z.toJSONSchema(this.outputs) as Record<string, unknown>
+        this._outputsJsonSchema ??= z.toJSONSchema(this.outputs, { io: 'input' }) as Record<string, unknown>
         return this._outputsJsonSchema
     }
 
     get configJsonSchema(): Record<string, unknown> {
-        this._configJsonSchema ??= z.toJSONSchema(this.configSchema) as Record<string, unknown>
+        this._configJsonSchema ??= z.toJSONSchema(this.configSchema, { io: 'input' }) as Record<string, unknown>
         return this._configJsonSchema
     }
 
     get stateJsonSchema(): Record<string, unknown> {
-        this._stateJsonSchema ??= z.toJSONSchema(this.stateSchema) as Record<string, unknown>
+        this._stateJsonSchema ??= z.toJSONSchema(this.stateSchema, { io: 'input' }) as Record<string, unknown>
         return this._stateJsonSchema
     }
 

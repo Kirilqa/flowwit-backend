@@ -9,6 +9,9 @@ const testSchema = z.object({
 
 const refinedSchema = z.object({ name: z.string() }).refine(() => false, { message: 'Root level error' })
 
+const transformingFieldSchema = z.object({ value: z.string() }).transform(raw => ({ value: raw.value.toUpperCase() }))
+const transformingSchema = z.object({ nested: transformingFieldSchema })
+
 class TestTool extends BaseTool<typeof testSchema> {
     readonly name = 'test-tool'
     readonly description = 'A test tool'
@@ -25,6 +28,16 @@ class RefinedTool extends BaseTool<typeof refinedSchema> {
     readonly schema = refinedSchema
 
     protected async run(args: z.infer<typeof refinedSchema>): Promise<unknown> {
+        return args
+    }
+}
+
+class TransformingTool extends BaseTool<typeof transformingSchema> {
+    readonly name = 'transforming-tool'
+    readonly description = 'Tool whose schema has a nested field that transforms its parsed output'
+    readonly schema = transformingSchema
+
+    protected async run(args: z.infer<typeof transformingSchema>): Promise<unknown> {
         return args
     }
 }
@@ -53,6 +66,22 @@ describe('BaseTool', () => {
             const params = tool.parameters
             const properties = params['properties']
             expect(properties).toBeDefined()
+        })
+
+        it('z.toJSONSchema() without the io:"input" option would throw on this same schema — this is the bug parameters guards against', () => {
+            expect(() => z.toJSONSchema(transformingSchema)).toThrow('Transforms cannot be represented in JSON Schema')
+        })
+
+        it('does not throw when a nested field has a .transform(), by describing the input shape', () => {
+            const transformingTool = new TransformingTool()
+            expect(() => transformingTool.parameters).not.toThrow()
+
+            const nested = transformingTool.parameters['properties'] as Record<string, unknown>
+            expect(nested['nested']).toEqual({
+                type: 'object',
+                properties: { value: { type: 'string' } },
+                required: ['value']
+            })
         })
     })
 

@@ -32,6 +32,49 @@ const O_SERIES_FEATURES: Array<ModelFeature> = [
 ]
 
 const MODEL_DEFINITIONS: Record<string, OpenAIModelDefinition> = {
+    'gpt-5.6-sol': {
+        contextWindow: 1047576,
+        maxOutputTokens: 131072,
+        maxChoicesCount: 128,
+        features: REASONING_CACHING_FEATURES,
+        pricing: {
+            inputPer1K: 0.004,
+            outputPer1K: 0.02,
+            cacheReadPer1K: 0.0004,
+            cacheWritePer1K: 0.005,
+            currency: 'USD'
+        },
+        description: 'GPT-5.6 Sol'
+    },
+    'gpt-5.6-terra': {
+        contextWindow: 1047576,
+        maxOutputTokens: 131072,
+        maxChoicesCount: 128,
+        features: REASONING_CACHING_FEATURES,
+        pricing: {
+            inputPer1K: 0.002,
+            outputPer1K: 0.012,
+            cacheReadPer1K: 0.0002,
+            cacheWritePer1K: 0.0025,
+            currency: 'USD'
+        },
+        description: 'GPT-5.6 Terra'
+    },
+    'gpt-5.6-luna': {
+        contextWindow: 1047576,
+        maxOutputTokens: 131072,
+        maxChoicesCount: 128,
+        features: REASONING_CACHING_FEATURES,
+        pricing: {
+            inputPer1K: 0.0002,
+            outputPer1K: 0.0012,
+            cacheReadPer1K: 0.00002,
+            cacheWritePer1K: 0.00025,
+            currency: 'USD'
+        },
+        description: 'GPT-5.6 Luna'
+    },
+
     'gpt-5': {
         contextWindow: 128000,
         maxOutputTokens: 16384,
@@ -265,6 +308,15 @@ const MODEL_DEFINITIONS: Record<string, OpenAIModelDefinition> = {
         pricing: { inputPer1K: 0.002, outputPer1K: 0.008, cacheReadPer1K: 0.0005, currency: 'USD' },
         description: 'o3'
     },
+    'o3-pro': {
+        contextWindow: 200000,
+        maxOutputTokens: 100000,
+        maxReasoningTokens: 100000,
+        maxChoicesCount: 1,
+        features: O_SERIES_FEATURES,
+        pricing: { inputPer1K: 0.02, outputPer1K: 0.08, currency: 'USD' },
+        description: 'o3 Pro'
+    },
     'o3-mini': {
         contextWindow: 200000,
         maxOutputTokens: 100000,
@@ -290,6 +342,10 @@ const PREFIX_FALLBACKS: Array<{ prefix: string; definition: OpenAIModelDefinitio
     { prefix: 'o1', definition: { contextWindow: 200000, maxOutputTokens: 100000, features: O_SERIES_FEATURES } },
     { prefix: 'o3', definition: { contextWindow: 200000, maxOutputTokens: 100000, features: O_SERIES_FEATURES } },
     { prefix: 'o4', definition: { contextWindow: 200000, maxOutputTokens: 100000, features: O_SERIES_FEATURES } },
+    {
+        prefix: 'gpt-5.6',
+        definition: { contextWindow: 1047576, maxOutputTokens: 131072, features: REASONING_CACHING_FEATURES }
+    },
     {
         prefix: 'gpt-5.5',
         definition: { contextWindow: 128000, maxOutputTokens: 16384, features: REASONING_CACHING_FEATURES }

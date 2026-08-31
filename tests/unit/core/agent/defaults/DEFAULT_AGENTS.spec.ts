@@ -1,62 +1,71 @@
 import { createDefaultAgents } from '@agent/defaults/DEFAULT_AGENTS'
-import { AppConfig } from '@config'
+import { ProviderInterface } from '@provider'
 
-function makeAppConfig(overrides: Partial<AppConfig> = {}): AppConfig {
+function makeProvider(name: string, defaultModel: string | null): ProviderInterface {
     return {
-        openai: {},
-        openrouter: {},
-        server: { port: 3000, host: '0.0.0.0' },
-        paths: {
-            skills: './skills',
-            mcpConfig: './mcp.json',
-            agentConfig: './agents.json',
-            sessions: './sessions',
-            workflows: './workflows',
-            workflowRuns: './workflows/runs',
-            channelConfig: './channels.json',
-            telegramState: './telegram-state.json',
-            guardrailRules: './guardrail-rules.json',
-            scheduledTasks: './scheduled-tasks.json',
-            scheduledTaskRuns: './scheduler/runs'
+        name,
+        initialize: () => Promise.reject(new Error('not implemented')),
+        getDefaultModel: () => Promise.resolve(defaultModel),
+        listModels: () => Promise.reject(new Error('not implemented')),
+        getModelInfo: () => Promise.reject(new Error('not implemented')),
+        getCapabilities: () => Promise.reject(new Error('not implemented')),
+        generate: () => Promise.reject(new Error('not implemented')),
+        generateStream: () => {
+            throw new Error('not implemented')
         },
-        memory: { path: './memory', persistentMaxLines: 200, persistentMaxBytes: 25_600 },
-        ...overrides
+        verifyAccess: () => Promise.reject(new Error('not implemented'))
     }
 }
 
 describe('createDefaultAgents', () => {
-    it('returns exactly one agent', () => {
-        const agents = createDefaultAgents(makeAppConfig({ openrouter: { apiKey: 'sk-or-test' } }))
+    it('returns exactly one agent', async () => {
+        const agents = await createDefaultAgents([makeProvider('openrouter', 'openai/gpt-5.6-luna')])
         expect(agents).toHaveLength(1)
     })
 
-    it('uses openrouter with the openrouter-slugged model when OPENROUTER_API_KEY is set', () => {
-        const [agent] = createDefaultAgents(makeAppConfig({ openrouter: { apiKey: 'sk-or-test' } }))
+    it('uses the first provider in the array and its own default model', async () => {
+        const [agent] = await createDefaultAgents([makeProvider('openrouter', 'openai/gpt-5.6-luna')])
         expect(agent?.provider).toBe('openrouter')
         expect(agent?.model).toBe('openai/gpt-5.6-luna')
     })
 
-    it('prefers openrouter over openai when both keys are set', () => {
-        const [agent] = createDefaultAgents(
-            makeAppConfig({ openai: { apiKey: 'sk-test' }, openrouter: { apiKey: 'sk-or-test' } })
-        )
-        expect(agent?.provider).toBe('openrouter')
+    it('prefers the earlier provider in the array when multiple are given', async () => {
+        const [agent] = await createDefaultAgents([
+            makeProvider('openai', 'gpt-5.6-luna'),
+            makeProvider('openrouter', 'openai/gpt-5.6-luna')
+        ])
+        expect(agent?.provider).toBe('openai')
     })
 
-    it('falls back to openai with the bare model name when only OPENAI_API_KEY is set', () => {
-        const [agent] = createDefaultAgents(makeAppConfig({ openai: { apiKey: 'sk-test' } }))
+    it('falls through to the next provider when an earlier one has no default model', async () => {
+        const [agent] = await createDefaultAgents([
+            makeProvider('ollama', null),
+            makeProvider('openai', 'gpt-5.6-luna')
+        ])
         expect(agent?.provider).toBe('openai')
         expect(agent?.model).toBe('gpt-5.6-luna')
     })
 
-    it('grants broad access via wildcard patterns', () => {
-        const [agent] = createDefaultAgents(makeAppConfig({ openrouter: { apiKey: 'sk-or-test' } }))
+    it('throws when no provider can resolve a default model', async () => {
+        await expect(createDefaultAgents([makeProvider('ollama', null)])).rejects.toThrow(
+            'No provider was able to resolve a default model for the starter agent'
+        )
+    })
+
+    it('throws when given an empty provider list', async () => {
+        await expect(createDefaultAgents([])).rejects.toThrow(
+            'No provider was able to resolve a default model for the starter agent'
+        )
+    })
+
+    it('grants broad access via wildcard patterns', async () => {
+        const [agent] = await createDefaultAgents([makeProvider('openrouter', 'openai/gpt-5.6-luna')])
         expect(agent?.tools).toEqual(['*'])
         expect(agent?.skills).toEqual(['*'])
     })
 
-    it('has a stable, recognizable id', () => {
-        const [agent] = createDefaultAgents(makeAppConfig({ openrouter: { apiKey: 'sk-or-test' } }))
+    it('has a stable, recognizable id', async () => {
+        const [agent] = await createDefaultAgents([makeProvider('openrouter', 'openai/gpt-5.6-luna')])
         expect(agent?.id).toBe('flowwit-start-agent')
     })
 })

@@ -55,7 +55,9 @@ const DELTA_EVENT_TYPES = new Set<string>([
     AGENT_EVENT_TYPE.STRUCTURED_OUTPUT_DELTA
 ])
 
-const SCHEDULED_TASK_OUTCOME_JSON_SCHEMA = z.toJSONSchema(scheduledTaskOutcomeSchema) as Record<string, unknown>
+const SCHEDULED_TASK_OUTCOME_JSON_SCHEMA = z.toJSONSchema(scheduledTaskOutcomeSchema, {
+    io: 'input'
+}) as Record<string, unknown>
 
 export class Scheduler implements SchedulerInterface {
     private timer: NodeJS.Timeout | null = null
